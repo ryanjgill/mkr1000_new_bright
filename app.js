@@ -1,19 +1,21 @@
 'use strict'
 
-// node express and rethinkdb
+// node express
 let express = require('express')
 let path = require('path')
 let favicon = require('serve-favicon')
 let logger = require('morgan')
 let cookieParser = require('cookie-parser')
 let bodyParser = require('body-parser')
-const r = require('rethinkdb')
-var dbConnection = null
 
 let app = express()
 
 // defining sensor variables
+<<<<<<< Updated upstream
 var led, moistureSensor, tempSensor, lightSensor
+=======
+var forwardPin, reversePin, leftPin, rightPin
+>>>>>>> Stashed changes
 
 // MKR1000 stuffs
 let httpServer = require('http').Server(app)
@@ -47,6 +49,7 @@ net.connect(options, function() { //'connect' listener
 
     var board = new five.Board({io: boardIo, repl: true})
 
+<<<<<<< Updated upstream
     /* RethinkDB stuffs */
     const p = r.connect({
       host: 'localhost',
@@ -70,36 +73,17 @@ net.connect(options, function() { //'connect' listener
       console.log(err)
     })
 
+=======
+>>>>>>> Stashed changes
     board.on('ready', function() {
       // full Johnny-Five support here
       console.log('five ready')
 
       // setup led on pin 6 --> led pin for MKR1000
-      led = new five.Led(6)
-
-      // pulse led to indicate the board is communicating
-      pulseLed(led, 2000, function () {
-        console.log('LED √')
-      })
-
-      // setup temperature sensor LM35
-      tempSensor = new five.Thermometer({
-        controller: 'LM35',
-        pin: 'A1',
-        freq: 250
-      })
-
-      // setup moisture sensor to correct pin
-      moistureSensor = new five.Sensor({
-        pin: 'A2',
-        freq: 250
-      })
-
-      // setup light sensor to correct pin
-      lightSensor = new five.Sensor({
-        pin: 'A3',
-        freq: 250
-      })
+      leftPin = new five.Led(0)
+      rightPin = new five.Led(1)
+      forwardPin = new five.Led(6)
+      reversePin = new five.Led(7)
 
       io.on('connection', function (socket) {
         console.log(socket.id)
@@ -111,17 +95,61 @@ net.connect(options, function() { //'connect' listener
         socket.on('disconnect', function () {
           emitUsersCount(io)
         })
+
+<<<<<<< Updated upstream
+      io.on('connection', function (socket) {
+        console.log(socket.id)
+=======
+        socket.on('command:forward:on', function (data) {
+          forwardPin.on()
+          console.log('command received! --> FORWARD ON')
+        })
+
+        socket.on('command:forward:off', function (data) {
+          forwardPin.off()
+          console.log('command received! --> FORWARD OFF')
+        })
+
+        socket.on('command:reverse:on', function (data) {
+          reversePin.on()
+          console.log('command received! --> REVERSE ON')
+        })
+
+        socket.on('command:reverse:off', function (data) {
+          reversePin.off()
+          console.log('command received! --> REVERSE OFF')
+        })
+
+        socket.on('command:left:on', function (data) {
+          leftPin.on()
+          console.log('command received! --> LEFT ON')
+        })
+
+        socket.on('command:left:off', function (data) {
+          leftPin.off()
+          console.log('command received! --> LEFT OFF')
+        })
+>>>>>>> Stashed changes
+
+        socket.on('command:right:on', function (data) {
+          rightPin.on()
+          console.log('command received! --> RIGHT ON')
+        })
+
+        socket.on('command:right:off', function (data) {
+          rightPin.off()
+          console.log('command received! --> RIGHT OFF')
+        })
       })
 
-      // emit chart data on each interval
-      setInterval(function () {
-        emitChartData(io, tempSensor, lightSensor, moistureSensor)
-      }, 1000)
 
+<<<<<<< Updated upstream
       // save measurement to rethinkdb on each interval
       setInterval(function () {
         saveMeasurements(dbConnection, tempSensor, lightSensor, moistureSensor)
       }, 10000)
+=======
+>>>>>>> Stashed changes
 
     })
   })
@@ -135,45 +163,14 @@ function emitUsersCount(io) {
   })
 }
 
-// emit chart data to all sockets
-function emitChartData(io, tempSensor, lightSensor, moistureSensor) {
-  io.sockets.emit('chart:data', {
+// emit signal received to all sockets
+function emitSignalReceived(io, message) {
+  io.sockets.emit('signal:received', {
     date: new Date().getTime(),
-    value: [getTemp(tempSensor), getLight(lightSensor), getMoisture(moistureSensor)]
+    value: message || 'Signal received.'
   })
 }
 
-// save measurements to RethinkDB
-function saveMeasurements(connection, tempSensor, lightSensor, moistureSensor) {
-  let measurement = {
-    date: new Date().getTime(),
-    temp: getTemp(tempSensor),
-    light: getLight(lightSensor),
-    moisture: getMoisture(moistureSensor)
-  }
-
-  r.table('measurements').insert(measurement).run(connection)
-  .then()
-  .error(function (err) {
-    console.log('Error saving measurement!')
-    console.log(err)
-  })
-}
-
-// get temperature measurement
-function getTemp(tempSensor) {
-  return Math.round(tempSensor.fahrenheit - 25)
-}
-
-// get light measurement
-function getLight(lightSensor) {
-  return Math.round(lightSensor.value/1023*100)
-}
-
-// get moisture measurement
-function getMoisture(moisture) {
-  return Math.round(moisture.value/1023*100)
-}
 
 // pulse led
 function pulseLed(led, duration, cb) {
@@ -185,7 +182,7 @@ function pulseLed(led, duration, cb) {
 }
 
 // setting app stuff
-app.locals.title = 'MKR1000'
+app.locals.title = 'MKR1000 New Bright'
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -209,78 +206,8 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-// get all measurements of certain type
-function getAllMeasurementsOfCertainType(type, cb) {
-  r.table('measurements')
-      .filter((m) => m.hasFields(type))
-      .orderBy('date').map(function (m) {
-        return [m('date'), m(type) || 0]
-      })
-      .run(dbConnection, function (err, measurements) {
-        if (err) { return cb(err) }
-        measurements.toArray(cb)
-      })
-}
-
-// get all temperature measurements
-function getAllTemperatureMeasurements(cb) {
-  return getAllMeasurementsOfCertainType('temp', cb)
-}
-
-// get all temperature measurements
-function getAllLightMeasurements(cb) {
-  return getAllMeasurementsOfCertainType('light', cb)
-}
-
-// get all temperature measurements
-function getAllMoistureMeasurements(cb) {
-  return getAllMeasurementsOfCertainType('moisture', cb)
-}
-
-
 // Routes
 app.get('/', function(req, res, next) {
   res.render('index')
-})
-
-app.get('/temperature', function (req, res, next) {
-  res.render('temperature')
-})
-
-app.get('/light', function (req, res, next) {
-  res.render('light')
-})
-
-app.get('/moisture', function (req, res, next) {
-  res.render('moisture')
-})
-
-
-// Routes for data
-app.get('/api/temps', function (req, res, next) {
-  getAllTemperatureMeasurements(function (err, measurements) {
-    if (err) { console.log(err) }
-
-    res.write(JSON.stringify(measurements))
-    res.end()
-  })
-})
-
-app.get('/api/light', function (req, res, next) {
-  getAllLightMeasurements(function (err, measurements) {
-    if (err) { console.log(err) }
-
-    res.write(JSON.stringify(measurements))
-    res.end()
-  })
-})
-
-app.get('/api/moisture', function (req, res, next) {
-  getAllMoistureMeasurements(function (err, measurements) {
-    if (err) { console.log(err) }
-
-    res.write(JSON.stringify(measurements))
-    res.end()
-  })
 })
 

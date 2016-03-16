@@ -1,36 +1,15 @@
 extends layout
 
 block content
-  section#main-column.dashboard
-    div#about
-      h1
-        span MKR1000
-        span  Plant Monitoring System
-      p This system will be using the <a href="https://www.arduino.cc/en/Main/ArduinoMKR1000" class="mkr-link">Arduino MKR1000</a> running the latest Standard Firmata Wifi sketch. The Firmata library allows us access to the board via a Node app using <a href="http://johnny-five.io" class="j5-link">Johnny-five.io</a>.
-    div#sensorValues
-      div#temperature.sensor-values(data-url='/temperature')
-        div.temperature 85<span>°F</span>
-        label Temperature
-      div#light.sensor-values(data-url='/light')
-        div.light 20<span>%</span>
-        label Light
-      div#moisture.sensor-values(data-url='/moisture')
-        div.moisture 0<span>%</span>
-        label Moisture
-      div#users.sensor-values
-        div.users 1
-        label Users
-
-    div#sensorData
+  h1=title
+  p I'm going to use the MKR1000 along with Johnny-Five and Node to control a New Bright RC car over wifi.
+  div
+    button#forward Forward
+    button#reverse Reverse
+  div
+    button#left Left
+    button#right Right
 
 block page_scripts
-  script(src='/javascripts/chart.js')
-  script.
-    var url = null;
-    $('div.sensor-values').on('click', function (e) {
-      url = $(e.currentTarget).data('url');
-      if (!url) { return; }
-
-      window.location.href = $(e.currentTarget).data('url')
-    })
+  script(src='/javascripts/carControls.js')
 

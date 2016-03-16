@@ -10,12 +10,9 @@ let bodyParser = require('body-parser')
 
 let app = express()
 
-// defining sensor variables
-<<<<<<< Updated upstream
-var led, moistureSensor, tempSensor, lightSensor
-=======
+// defining pin variables
 var forwardPin, reversePin, leftPin, rightPin
->>>>>>> Stashed changes
+
 
 // MKR1000 stuffs
 let httpServer = require('http').Server(app)
@@ -49,37 +46,11 @@ net.connect(options, function() { //'connect' listener
 
     var board = new five.Board({io: boardIo, repl: true})
 
-<<<<<<< Updated upstream
-    /* RethinkDB stuffs */
-    const p = r.connect({
-      host: 'localhost',
-      port: 28015,
-      db: 'plant_monitoring_system'
-    })
-
-    dbConnection = null
-
-    p.then(function (conn) {
-      // connected to rethinkdb
-      console.log('rethinkdb connected!')
-      dbConnection = conn
-
-      r.table('measurements').run(conn, function (err, cursor) {
-        //cursor.each(console.log)
-      })
-
-    }).error(function (err) {
-      console.log('Rethinkdb error!')
-      console.log(err)
-    })
-
-=======
->>>>>>> Stashed changes
     board.on('ready', function() {
       // full Johnny-Five support here
       console.log('five ready')
 
-      // setup led on pin 6 --> led pin for MKR1000
+      // setup steering pins
       leftPin = new five.Led(0)
       rightPin = new five.Led(1)
       forwardPin = new five.Led(6)
@@ -96,15 +67,12 @@ net.connect(options, function() { //'connect' listener
           emitUsersCount(io)
         })
 
-<<<<<<< Updated upstream
-      io.on('connection', function (socket) {
-        console.log(socket.id)
-=======
         socket.on('command:forward:on', function (data) {
           forwardPin.on()
           console.log('command received! --> FORWARD ON')
         })
 
+        // Steering Commands
         socket.on('command:forward:off', function (data) {
           forwardPin.off()
           console.log('command received! --> FORWARD OFF')
@@ -129,7 +97,6 @@ net.connect(options, function() { //'connect' listener
           leftPin.off()
           console.log('command received! --> LEFT OFF')
         })
->>>>>>> Stashed changes
 
         socket.on('command:right:on', function (data) {
           rightPin.on()
@@ -141,15 +108,6 @@ net.connect(options, function() { //'connect' listener
           console.log('command received! --> RIGHT OFF')
         })
       })
-
-
-<<<<<<< Updated upstream
-      // save measurement to rethinkdb on each interval
-      setInterval(function () {
-        saveMeasurements(dbConnection, tempSensor, lightSensor, moistureSensor)
-      }, 10000)
-=======
->>>>>>> Stashed changes
 
     })
   })

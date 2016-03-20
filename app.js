@@ -31,7 +31,7 @@ const options = {
 }
 
 // connection starts here
-net.connect(options, function() { //'connect' listener
+let mkr1000Connection = net.connect(options, function() { //'connect' listener
   console.log('connected to server!')
 
   var socketClient = this
@@ -113,6 +113,18 @@ net.connect(options, function() { //'connect' listener
   })
 
 })
+
+mkr1000Connection.on('connection', function () {
+  console.log('Connected to the MKR1000!');
+})
+
+mkr1000Connection.on('error', function (err) {
+  console.log('Unable to establish connection to the MKR1000!');
+  console.log(err);
+})
+
+
+
 
 // emit usersCount to all sockets
 function emitUsersCount(io) {
